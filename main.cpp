@@ -1,5 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#define TILESIZE 80
 
 #define WIDE 800
 #define HIGH 600
@@ -8,13 +9,18 @@ int main()
 {
   sf::RenderWindow window(sf::VideoMode(WIDE,HIGH),"THE ADVENTURE");
 
-  int speed = 1;
+  double speed = .5;
   int Points = 10002;
 
+  sf::Texture hero_texture;
+  if(hero_texture.loadFromFile("assets/Hero.png"))
+  {
+    std::cout << "ERROR LOADING HERO" << std::endl;
+  }
+  sf::Sprite hero;
+  hero.setTexture(hero_texture);
+  hero.setScale(sf::Vector2f(5,5));
 
-  sf::RectangleShape hero(sf::Vector2f(25,25));
-  hero.setFillColor(sf::Color::Red);
-  hero.setPosition(WIDE-50,0);
 
 
   sf::CircleShape circle(25);
@@ -41,7 +47,7 @@ int main()
     {
         hero.move(0,-speed);
     }
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && hero.getPosition().y < HIGH-hero.getSize().y)
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && hero.getPosition().y < HIGH-TILESIZE)
     {
         hero.move(0,speed);
     }
@@ -49,18 +55,18 @@ int main()
     {
         hero.move(-speed,0);
     }
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && hero.getPosition().x < WIDE-hero.getSize().x)
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && hero.getPosition().x < WIDE-TILESIZE)
     {
         hero.move(speed,0);
     }
 
     if(hero.getGlobalBounds().intersects(circle.getGlobalBounds()))
     {
-      std::cout << "NOOOOO!" << std::endl;
+      //std::cout << "NOOOOO!" << std::endl;
     }
     else
     {
-      std::cout << "ok." << std::endl;
+      //std::cout << "." << std::endl;
     }
 
     window.clear(sf::Color::Green);
