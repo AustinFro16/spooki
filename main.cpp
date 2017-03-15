@@ -9,24 +9,55 @@ int main()
 {
   sf::RenderWindow window(sf::VideoMode(WIDE,HIGH),"THE ADVENTURE");
 
-  double speed = .5;
-  int Points = 10002;
+  double speed = 1;
+  int Lives = 6;
+  bool takingDamage = false;
 
   sf::Texture hero_texture;
-  if(hero_texture.loadFromFile("assets/Hero.png"))
+  if(!hero_texture.loadFromFile("assets/Hero1.png"))
   {
     std::cout << "ERROR LOADING HERO" << std::endl;
   }
   sf::Sprite hero;
   hero.setTexture(hero_texture);
-  hero.setScale(sf::Vector2f(5,5));
+  hero.setScale(sf::Vector2f(1,1));
+  hero.setPosition(100,100);
 
 
 
-  sf::CircleShape circle(25);
-  circle.setFillColor(sf::Color::Blue);
-  circle.setPosition(0,225);
-  int circleDirection = 0;
+  sf::Texture goblin_texture;
+  if(!goblin_texture.loadFromFile("assets/goblin1.png"))
+  {
+    std::cout << "ERROR LOADING GOBLIN" << std::endl;
+  }
+  sf::Sprite goblin;
+  goblin.setTexture(goblin_texture);
+  goblin.setScale(sf::Vector2f(1,1));
+  int goblinDirection = 0;
+  goblin.setPosition(0,200);
+
+  sf:: Font font;
+  if(!font.loadFromFile("assets/ARCADECLASSIC.TTF"))
+  {
+    std::cout << "ERROR LOADING FONT" << std::endl;
+  }
+  sf::Text livesDisp;
+  livesDisp.setFont(font);
+  livesDisp.setCharacterSize(24);
+  livesDisp.setColor(sf::Color::Black);
+
+  sf::Texture wood_texture;
+  if(!wood_texture.loadFromFile("assets/wood1.png"))
+  {
+    std::cout << "ERROR LOADING WOOD" << std::endl;
+  }
+  sf::Sprite wood;
+  wood.setTexture(wood_texture);
+  wood.setScale(sf::Vector2f(1,1));
+  wood.setPosition(400,400);
+
+
+
 
   //Game Loop
   while(window.isOpen())
@@ -46,50 +77,73 @@ int main()
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && hero.getPosition().y > 0)
     {
         hero.move(0,-speed);
+        if(hero.getGlobalBounds().intersects(wood.getGlobalBounds()))
+        {
+          hero.move(0,speed);
+        }
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && hero.getPosition().y < HIGH-TILESIZE)
     {
         hero.move(0,speed);
+        if(hero.getGlobalBounds().intersects(wood.getGlobalBounds()))
+        {
+          hero.move(0,-speed);
+        }
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && hero.getPosition().x > 0)
     {
         hero.move(-speed,0);
+        if(hero.getGlobalBounds().intersects(wood.getGlobalBounds()))
+        {
+          hero.move(speed,0);
+        }
     }
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && hero.getPosition().x < WIDE-TILESIZE)
     {
         hero.move(speed,0);
+        if(hero.getGlobalBounds().intersects(wood.getGlobalBounds()))
+        {
+          hero.move(-speed,0);
+        }
     }
 
-    if(hero.getGlobalBounds().intersects(circle.getGlobalBounds()))
+    if(hero.getGlobalBounds().intersects(goblin.getGlobalBounds()))
     {
-      //std::cout << "NOOOOO!" << std::endl;
+      if(takingDamage == false)
+      {
+        Lives--;
+        takingDamage = true;
+      }
     }
     else
     {
-      //std::cout << "." << std::endl;
+      takingDamage = false;
     }
 
     window.clear(sf::Color::Green);
     //updates stuff-Aaron
 
-    if(circleDirection == 0)
+    if(goblinDirection == 0)
     {
-      circle.move(1,0);
+      goblin.move(1,0);
     }
     else
     {
-      circle.move(-1,0);
+      goblin.move(-1,0);
     }
-    if(circle.getPosition().x > 800)
+    if(goblin.getPosition().x > 800)
     {
-      circleDirection = 1;
+      goblinDirection = 1;
     }
-    if(circle.getPosition().x < 0)
+    if(goblin.getPosition().x < 0)
     {
-      circleDirection = 0;
+      goblinDirection = 0;
     }
+      window.draw(goblin);
       window.draw(hero);
-      window.draw(circle);
+      window.draw(wood);
+      window.draw(livesDisp);
+      livesDisp.setString(std::to_string(Lives));
 
     //Render-Max
     window.display();
