@@ -1,13 +1,83 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
-#define TILESIZE 80
+#include <vector>
+
+#define TILESIZE 32
 
 #define WIDE 800
-#define HIGH 600
+#define HIGH 640
+
+
+bool testColl(sf:: Sprite a, sf:: Sprite b)
+{
+  return a.getGlobalBounds().intersects(b.getGlobalBounds());
+}
+
+bool testWallColl(sf:: Sprite a, std::vector<sf::Sprite> wood)
+{
+  for(int i=0; i<wood.size(); i++)
+  {
+    if(a.getGlobalBounds().intersects(wood[i].getGlobalBounds()))
+    {
+        return true;
+    }
+  }
+  return false;
+}
+
+
+
+
 
 int main()
 {
   sf::RenderWindow window(sf::VideoMode(WIDE,HIGH),"THE ADVENTURE");
+
+  int tileW = WIDE/TILESIZE;
+  int tileH = HIGH/TILESIZE;
+
+  std::vector<std::vector<bool> > map;
+
+  for(int i=0; i<tileH; i++)
+  {
+    std::vector<bool> temp;
+    for(int j=0; j<tileW; j++)
+    {
+      temp.push_back(false);
+    }
+    map.push_back(temp);
+  }
+
+  map[3][4] = true;
+  map[4][4] = true;
+  map[5][4] = true;
+  map[6][4] = true;
+  map[3][3] = true;
+  map[3][2] = true;
+  map[3][0] = true;
+  map[6][3] = true;
+  map[6][2] = true;
+  map[6][1] = true;
+  map[6][0] = true;
+
+  for(int i=0; i<map.size(); i++)
+  {
+    for(int j=0; j<map[i].size(); j++)
+    {
+        if(map[i][j] == true)
+        {
+          std::cout << 'X';
+        }
+        else
+        {
+          std::cout << ' ';
+        }
+
+    }
+    std::cout << std::endl;
+  }
+
+
 
   double speed = 1;
   int Lives = 6;
@@ -20,8 +90,8 @@ int main()
   }
   sf::Sprite hero;
   hero.setTexture(hero_texture);
-  hero.setScale(sf::Vector2f(1,1));
-  hero.setPosition(100,100);
+  hero.setScale(sf::Vector2f(.5,.5));
+  hero.setPosition(300,300);
 
 
 
@@ -32,7 +102,7 @@ int main()
   }
   sf::Sprite goblin;
   goblin.setTexture(goblin_texture);
-  goblin.setScale(sf::Vector2f(1,1));
+  goblin.setScale(sf::Vector2f(.5,.5));
   int goblinDirection = 0;
   goblin.setPosition(0,200);
 
@@ -44,17 +114,38 @@ int main()
   sf::Text livesDisp;
   livesDisp.setFont(font);
   livesDisp.setCharacterSize(24);
-  livesDisp.setColor(sf::Color::Black);
+  livesDisp.setColor(sf::Color::Red);
 
   sf::Texture wood_texture;
   if(!wood_texture.loadFromFile("assets/wood1.png"))
   {
     std::cout << "ERROR LOADING WOOD" << std::endl;
   }
-  sf::Sprite wood;
-  wood.setTexture(wood_texture);
-  wood.setScale(sf::Vector2f(1,1));
-  wood.setPosition(400,400);
+  std::vector<sf::Sprite> woodArr;
+  for(int i=0; i<map.size(); i++)
+  {
+    for(int j=0; j<map[i].size(); j++)
+    {
+      if(map[i][j] == true)
+      {
+        sf::Sprite temp;
+        temp.setTexture(wood_texture);
+        temp.setScale(sf::Vector2f(.5,.5));
+        temp.setPosition(j*TILESIZE,i*TILESIZE);
+        woodArr.push_back(temp);
+      }
+    }
+  }
+
+  sf::Texture stone_texture;
+  if(!stone_texture.loadFromFile("assets/cobblestone1.png"))
+  {
+    std::cout << "ERROR LOADING STONE" << std::endl;
+  }
+  sf::Sprite stone;
+  stone.setTexture(stone_texture);
+  stone.setScale(sf::Vector2f(1,1));
+
 
 
 
@@ -77,7 +168,7 @@ int main()
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up) && hero.getPosition().y > 0)
     {
         hero.move(0,-speed);
-        if(hero.getGlobalBounds().intersects(wood.getGlobalBounds()))
+        if(testWallColl(hero, woodArr))
         {
           hero.move(0,speed);
         }
@@ -85,7 +176,7 @@ int main()
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down) && hero.getPosition().y < HIGH-TILESIZE)
     {
         hero.move(0,speed);
-        if(hero.getGlobalBounds().intersects(wood.getGlobalBounds()))
+        if(testWallColl(hero, woodArr))
         {
           hero.move(0,-speed);
         }
@@ -93,7 +184,7 @@ int main()
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left) && hero.getPosition().x > 0)
     {
         hero.move(-speed,0);
-        if(hero.getGlobalBounds().intersects(wood.getGlobalBounds()))
+        if(testWallColl(hero, woodArr))
         {
           hero.move(speed,0);
         }
@@ -101,7 +192,7 @@ int main()
     if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right) && hero.getPosition().x < WIDE-TILESIZE)
     {
         hero.move(speed,0);
-        if(hero.getGlobalBounds().intersects(wood.getGlobalBounds()))
+        if(testWallColl(hero, woodArr))
         {
           hero.move(-speed,0);
         }
@@ -139,9 +230,23 @@ int main()
     {
       goblinDirection = 0;
     }
-      window.draw(goblin);
+
+
+      for(int i=0; i<tileH; i++)
+      {
+        for(int j=0; j<tileW; j++)
+        {
+          stone.setPosition(j*TILESIZE,i*TILESIZE);
+          window.draw(stone);
+        }
+      }
+
       window.draw(hero);
-      window.draw(wood);
+      window.draw(goblin);
+      for(int i=0; i<woodArr.size(); i++)
+      {
+          window.draw(woodArr[i]);
+      }
       window.draw(livesDisp);
       livesDisp.setString(std::to_string(Lives));
 
