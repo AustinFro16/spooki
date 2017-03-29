@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 #include <iostream>
 #include <vector>
 
@@ -48,17 +49,25 @@ int main()
     map.push_back(temp);
   }
 
-  map[3][4] = true;
-  map[4][4] = true;
-  map[5][4] = true;
-  map[6][4] = true;
+  map[4][3] = true;
+  map[5][3] = true;
   map[3][3] = true;
   map[3][2] = true;
-  map[3][0] = true;
   map[6][3] = true;
   map[6][2] = true;
   map[6][1] = true;
-  map[6][0] = true;
+
+
+  for(int i=0; i<tileH; i++)
+  {
+    map[i][0] = true;
+    map[i][tileW-1] = true;
+  }
+  for(int i=0; i<tileW; i++)
+  {
+    map[0][i] = true;
+    map[tileH-1][i] = true;
+  }
 
   for(int i=0; i<map.size(); i++)
   {
@@ -82,6 +91,9 @@ int main()
   double speed = 1;
   int Lives = 6;
   bool takingDamage = false;
+  double homingX = 0.5;
+  double homingY = 0.5;
+  double homingDist = 0;
 
   sf::Texture hero_texture;
   if(!hero_texture.loadFromFile("assets/Hero1.png"))
@@ -91,7 +103,7 @@ int main()
   sf::Sprite hero;
   hero.setTexture(hero_texture);
   hero.setScale(sf::Vector2f(.5,.5));
-  hero.setPosition(300,300);
+  hero.setPosition(320,320);
 
 
 
@@ -104,7 +116,18 @@ int main()
   goblin.setTexture(goblin_texture);
   goblin.setScale(sf::Vector2f(.5,.5));
   int goblinDirection = 0;
-  goblin.setPosition(0,200);
+  goblin.setPosition(192,192);
+
+  sf::Texture ghoul_texture;
+  if(!ghoul_texture.loadFromFile("assets/ghoul.png"))
+  {
+    std::cout << "ERROR LOADING GHOUL" << std::endl;
+  }
+  sf::Sprite ghoul;
+  ghoul.setTexture(ghoul_texture);
+  ghoul.setScale(sf::Vector2f(.5,.5));
+  int ghoulDirection = 0;
+  ghoul.setPosition(384,384);
 
   sf:: Font font;
   if(!font.loadFromFile("assets/ARCADECLASSIC.TTF"))
@@ -146,6 +169,25 @@ int main()
   stone.setTexture(stone_texture);
   stone.setScale(sf::Vector2f(1,1));
 
+
+  sf::SoundBuffer grunt_buffer;
+  if(!grunt_buffer.loadFromFile("assets/grunt.wav"))
+  {
+    std::cout << "ERROR LOADING GRUNT" << std::endl;
+  }
+  sf::Sound grunt;
+  grunt.setBuffer(grunt_buffer);
+  grunt.setPitch(1.001);
+
+  //sf::SoundBuffer music_buffer;
+  //if(!grunt_buffer.loadFromFile("assets/music1.wav"))
+  //{
+    //std::cout << "ERROR LOADING MUSIC" << std::endl;
+  //}
+  //sf::Sound music;
+  //music.setBuffer(music_buffer);
+  //music.setPitch(1);
+  //music.setLoop(true);
 
 
 
@@ -203,6 +245,7 @@ int main()
       if(takingDamage == false)
       {
         Lives--;
+        grunt.play();
         takingDamage = true;
       }
     }
@@ -230,6 +273,20 @@ int main()
     {
       goblinDirection = 0;
     }
+    if(testWallColl(goblin, woodArr))
+    {
+      if(goblinDirection == 1)
+      {
+        goblinDirection = 0;
+      }
+      else
+      {
+        goblinDirection = 1;
+      }
+
+    }
+
+
 
 
       for(int i=0; i<tileH; i++)
@@ -240,7 +297,7 @@ int main()
           window.draw(stone);
         }
       }
-
+      window.draw(ghoul);
       window.draw(hero);
       window.draw(goblin);
       for(int i=0; i<woodArr.size(); i++)
